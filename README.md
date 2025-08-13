@@ -73,6 +73,5 @@ This project is open source and available under the MIT License.
 # Contact
 
 Feel free to reach out or connect if you'd like to collaborate or discuss the work:
-
-GitHub: @nikhil-sethu
-LinkedIn: linkedin.com/in/nikhil-sethu/
+- GitHub: [@nikhil-sethu](https://github.com/nikhil-sethu/)
+- LinkedIn: [linkedin.com/in/nikhil-sethu/](https://linkedin.com/in/nikhil-sethu/)
