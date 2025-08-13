@@ -1,4 +1,5 @@
 pdf_data/
+chroma/
 
 # Python
 __pycache__/
