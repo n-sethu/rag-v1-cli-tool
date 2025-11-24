@@ -11,7 +11,7 @@ from PyPDF2 import PdfReader
 CHROMA_PATH = "chroma"
 DATA_PATH = "pdf_data"
 
-MAX_CHUNKS_ALLOWED = 10000  # adjust as you see fit
+MAX_CHUNKS_ALLOWED = 10000 #ChromaDB cannot handle larger pdfs
 def is_pdf_too_large(pdf_path, max_size_mb=10):
     size_bytes = os.path.getsize(pdf_path)
     size_mb = size_bytes / (1024 * 1024)
@@ -103,7 +103,6 @@ def load_documents(selected_pdf_paths):
                 pass
 
             # Try PyPDFLoader (pypdf). This used to be the default but can be slow
-            # on some PDFs; still useful as a middle-ground.
             try:
                 from langchain_community.document_loaders import PyPDFLoader
                 loader = PyPDFLoader(pdf_path)
@@ -138,7 +137,7 @@ def load_documents(selected_pdf_paths):
             except Exception as e:
                 print(f"pdfminer fallback failed for {pdf_path}: {e}")
 
-            # If we reach here, all loaders failed for this pdf
+            # all loaders failed for this pdf
             print(f"All PDF loaders failed for {pdf_path}; skipping.")
 
         except KeyboardInterrupt:
@@ -209,7 +208,7 @@ def main():
     args = parser.parse_args()
     
     if args.reset:
-        print("✨ Clearing Database")
+        print("Clearing Database :)")
         clear_database()
     
     selected_pdf_paths = select_pdfs()

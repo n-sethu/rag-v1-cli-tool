@@ -1,4 +1,4 @@
-from langchain_community.embeddings.ollama import OllamaEmbeddings
+from langchain_ollama import OllamaEmbeddings
 # from langchain_community.embeddings import BedrockEmbeddings  # Fixed import path
 
 def get_embedding_function():

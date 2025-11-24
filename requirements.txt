@@ -192,3 +192,4 @@ pdfminer.six
 pypdfium2 
 langchain-community
 pillow-heif
+
