@@ -1,8 +1,10 @@
-pypdf
-langchain
-chromadb # Vector storage
-pytest
-boto3
-langchain-chroma
-langchain_community
-ollama  
+PyPDF2
+PyPDF2==3.0.1
+langchain==1.0.8
+chromadb==1.3.5
+pytest==9.0.1
+boto3==1.41.0
+langchain-chroma==1.0.0
+langchain-text-splitters==1.0.0
+langchain-community==0.4.1
+ollama==0.6.1
