@@ -1,7 +1,7 @@
 import argparse
 import os
 import shutil
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import UnstructuredPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from get_embedding_function import get_embedding_function
 from langchain_chroma import Chroma
@@ -66,17 +66,86 @@ def select_pdfs():
     
     return [os.path.join(DATA_PATH, pdf) for pdf in selected_files]
 
-def load_documents(selected_pdf_paths: list[str]):
-    documents = []
-    for pdf_path in selected_pdf_paths:
-        loader = PyPDFLoader(pdf_path)
-        docs = loader.load()
-        # Add source metadata as filename for chunk ID creation
-        for doc in docs:
-            doc.metadata["source"] = os.path.basename(pdf_path)
-        documents.extend(docs)
-    return documents
+def load_documents(selected_pdf_paths):
+    """Load PDFs using multiple strategies with fallbacks.
 
+    Tries, in order: UnstructuredPDFLoader, PDFium2Loader, PyPDFLoader (pypdf),
+    and finally a minimal fallback using pdfminer.six's extract_text.
+    Each loader is attempted only if its import succeeds. Any loader exceptions
+    for a specific PDF are logged and the next loader is tried.
+    """
+    from typing import List
+    docs: List = []
+
+    for pdf_path in selected_pdf_paths:
+        # Try UnstructuredPDFLoader (best quality for messy PDFs)
+        try:
+            try:
+                from langchain_community.document_loaders import UnstructuredPDFLoader
+                loader = UnstructuredPDFLoader(pdf_path, strategy="fast")
+                loaded = loader.load()
+                if loaded:
+                    docs.extend(loaded)
+                    continue
+            except Exception:
+                # import or runtime failure; fall through to next loader
+                pass
+
+            # Try PDFium2Loader (fast raster-based extractor)
+            try:
+                from langchain_community.document_loaders import PDFium2Loader
+                loader = PDFium2Loader(pdf_path)
+                loaded = loader.load()
+                if loaded:
+                    docs.extend(loaded)
+                    continue
+            except Exception:
+                pass
+
+            # Try PyPDFLoader (pypdf). This used to be the default but can be slow
+            # on some PDFs; still useful as a middle-ground.
+            try:
+                from langchain_community.document_loaders import PyPDFLoader
+                loader = PyPDFLoader(pdf_path)
+                loaded = loader.load()
+                if loaded:
+                    docs.extend(loaded)
+                    continue
+            except Exception:
+                pass
+
+            # Final minimal fallback using pdfminer.six's extract_text
+            try:
+                from pdfminer.high_level import extract_text
+                text = extract_text(pdf_path) or ""
+                # lazy-create a minimal langchain Document
+                try:
+                    # prefer langchain.schema.Document if available
+                    from langchain.schema import Document
+                except Exception:
+                    # older langchain_core installs expose a compatible Document
+                    try:
+                        from langchain_core.schema import Document
+                    except Exception:
+                        # last resort: create a simple dict-like object
+                        Document = None
+
+                if Document is not None:
+                    docs.append(Document(page_content=text, metadata={"source": pdf_path}))
+                else:
+                    docs.append({"page_content": text, "metadata": {"source": pdf_path}})
+                continue
+            except Exception as e:
+                print(f"pdfminer fallback failed for {pdf_path}: {e}")
+
+            # If we reach here, all loaders failed for this pdf
+            print(f"All PDF loaders failed for {pdf_path}; skipping.")
+
+        except KeyboardInterrupt:
+            # propagate ctrl-c so the script can be interrupted normally
+            raise
+
+    return docs
 def split_documents(documents: list):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=800,
@@ -134,6 +203,7 @@ def clear_database():
         print(f"Cleared database at '{CHROMA_PATH}'.")
 
 def main():
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("--reset", action="store_true", help="Reset the database.")
     args = parser.parse_args()
@@ -148,4 +218,10 @@ def main():
     add_to_chroma(chunks)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print("Encountered error during db population:", e)
+        print("Check installed PDF extractor packages and try again.")
