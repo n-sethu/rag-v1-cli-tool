@@ -19,9 +19,9 @@ def query_rag(query_text: str):
     embedding_function = get_embedding_function()
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
     
-    results = db.similarity_search_with_score(query_text, k=5)
+    results = db.similarity_search_with_score(query_text, k=6)
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _ in results])
-    
+
     prompt = PROMPT_TEMPLATE.format(context=context_text, question=query_text)
 
     model = OllamaLLM(model="mistral")
@@ -34,7 +34,7 @@ def query_rag(query_text: str):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("query_text", type=str, help="The query text.")
-    # Optional flag to populate DB before querying
+    # Optional flag 
     parser.add_argument("--populate", action="store_true", help="Populate DB before query.")
     args = parser.parse_args()
 

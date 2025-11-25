@@ -78,7 +78,7 @@ def load_documents(selected_pdf_paths):
     docs: List = []
 
     for pdf_path in selected_pdf_paths:
-        # Try UnstructuredPDFLoader (best quality for messy PDFs)
+        # Try UnstructuredPDFLoader 
         try:
             try:
                 from langchain_community.document_loaders import UnstructuredPDFLoader
@@ -88,7 +88,7 @@ def load_documents(selected_pdf_paths):
                     docs.extend(loaded)
                     continue
             except Exception:
-                # import or runtime failure; fall through to next loader
+                # import or runtime failure;
                 pass
 
             # Try PDFium2Loader (fast raster-based extractor)
@@ -113,7 +113,7 @@ def load_documents(selected_pdf_paths):
             except Exception:
                 pass
 
-            # Final minimal fallback using pdfminer.six's extract_text
+            # Final fallback
             try:
                 from pdfminer.high_level import extract_text
                 text = extract_text(pdf_path) or ""
