@@ -40,7 +40,7 @@ def main():
 
     if args.populate:
         import subprocess
-        subprocess.run(["python3", "populate_database.py"])  # Modify path if needed
+        subprocess.run(["python3", "populate_database.py"])  
 
     query_rag(args.query_text)
 
