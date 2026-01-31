@@ -43,6 +43,7 @@ Install with
 ```bash
 pip install -r requirements.txt
 ```
+Update: I've found that uv works much faster than pip (parallel downloading in rust)
 
 Place any pdfs into a folder called /pdf_data 
 #### make sure to place this folder in .gitignore so large files are not tracked
